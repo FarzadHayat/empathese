@@ -28,96 +28,91 @@
     let recordingThem = false;
     let loadingThem = false;
 
-    let chunks: Blob[] = [];
-    let mediaRecorder: MediaRecorder;
+    let chunksYou: Blob[] = [];
+    let mediaRecorderYou: MediaRecorder;
+
+    let chunksThey: Blob[] = [];
+    let mediaRecorderThem: MediaRecorder;
 
     const recordYou = () => {
         if (!recordingYou) {
             recordingYou = true;
-            // start recording in here
             navigator.mediaDevices
                 .getUserMedia({audio: true})
                 .then((stream) => {
-                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorderYou = new MediaRecorder(stream);
 
-                    mediaRecorder.start()
+                    mediaRecorderYou.start();
 
-                    mediaRecorder.onstop = async (e) => {
-                        const blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" });
-                        chunks = [];
-                        const audioURL = URL.createObjectURL(blob);
-                        console.log(audioURL);
+                    mediaRecorderYou.onstop = async () => {
+                        stream.getTracks().forEach(track => track.stop());
+                        const blob = new Blob(chunksYou, { type: "audio/ogg; codecs=opus" });
+                        chunksYou = [];
 
                         const response = await fetch("/api/dictation", {
                             method: "POST",
                             body: blob,
-                            headers: {'content-type': 'plain/text'}
-                        })
+                        });
 
                         youSaid = await response.text();
                         loadingYou = false;
-                    }
+                    };
 
-                    mediaRecorder.ondataavailable = (e) => {
-                        chunks.push(e.data);
+                    mediaRecorderYou.ondataavailable = (e) => {
+                        chunksYou.push(e.data);
                     };
                 })
                 .catch((err) => {
                     console.error(`The following error occurred: ${err}`);
+                    recordingYou = false;
                 });
         }
         else {
-            // handle stopping the recording
-            // when finished, set youSaid to result
-            mediaRecorder.stop();
+            mediaRecorderYou.stop();
             recordingYou = false;
             loadingYou = true;
         }
-    }
+    };
 
     const recordThem = () => {
         if (!recordingThem) {
             recordingThem = true;
-            // start recording in here
             navigator.mediaDevices
                 .getUserMedia({audio: true})
                 .then((stream) => {
-                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorderThem = new MediaRecorder(stream);
 
-                    mediaRecorder.start()
+                    mediaRecorderThem.start();
 
-                    mediaRecorder.onstop = async (e) => {
-                        const blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" });
-                        chunks = [];
-                        const audioURL = URL.createObjectURL(blob);
-                        console.log(audioURL);
+                    mediaRecorderThem.onstop = async () => {
+                        stream.getTracks().forEach(track => track.stop());
+                        const blob = new Blob(chunksThey, { type: "audio/ogg; codecs=opus" });
+                        chunksThey = [];
 
                         const response = await fetch("/api/dictation", {
                             method: "POST",
                             body: blob,
-                            headers: {'content-type': 'plain/text'}
-                        })
+                        });
 
                         theySaid = await response.text();
                         loadingThem = false;
-                    }
+                    };
 
-                    mediaRecorder.ondataavailable = (e) => {
-                        chunks.push(e.data);
+                    mediaRecorderThem.ondataavailable = (e) => {
+                        chunksThey.push(e.data);
                     };
                 })
                 .catch((err) => {
                     console.error(`The following error occurred: ${err}`);
+                    recordingThem = false;
                 });
         }
         else {
-            // handle stopping the recording
-            // when finished, set youSaid to result
-            mediaRecorder.stop();
+            mediaRecorderThem.stop();
             recordingThem = false;
             loadingThem = true;
         }
-    }
+    };
 </script>
 
 <AppBar title="💓 Empathese 💓" />
