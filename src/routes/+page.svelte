@@ -28,7 +28,7 @@
     let recordingThem = false;
     let loadingThem = false;
 
-    let chunks = [];
+    let chunks: Blob[] = [];
     let mediaRecorder: MediaRecorder;
 
     const recordYou = () => {
