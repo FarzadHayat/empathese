@@ -1,13 +1,14 @@
 import type { Actions, PageServerLoad } from './$types';
-import OpenAI from 'openai';
+import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import { redirect } from '@sveltejs/kit';
 dotenv.config();
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-    organization: process.env.OPENAI_ORG_ID
-});
+const apiKey = process.env.GEMINI_API_KEY;
+if (!apiKey) {
+    throw new Error('GEMINI_API_KEY environment variable is not set');
+}
+const ai = new GoogleGenAI({ apiKey });
 
 export const load: PageServerLoad = ({request}) => {
     if (request.method != "POST") {
@@ -34,7 +35,7 @@ export const actions = {
         const responseFormat = `<your interpretation of their response as a string>;<first ${responseQuality} suggestion for a response that I could say to them as string>;<second ${responseQuality} suggestion for a response that I could say to them as string>;<third ${responseQuality} suggestion for a response that I could say to them as string>`;
 
         // Setting up the scenario
-        const systemMessage =
+        const prompt =
         `${responseQualityString}
         I will give you a scenario of what I said and what they said.
         Give a response including an interpretation of what they said from your point of view speaking to me, along with three suggestions for possible responses I could say to them from my point of view.
@@ -42,22 +43,21 @@ export const actions = {
 
         ${responseFormat}
         
-        Don't give explanation or extra boilerplate around your response. Only include the format above in your response.`;
-        console.log(systemMessage);
+        Don't give explanation or extra boilerplate around your response. Only include the format above in your response.
+
+        I said: ${yourMessage}
+        They said: ${theirMessage}
+        Relationship: ${relationship}`;
+        console.log(prompt);
 
         // API call
-        const chatCompletion = await openai.chat.completions.create({
-            model: "gpt-4",
-            messages: [
-                {"role": "system", "content": systemMessage},
-                {"role": "user", "content": `I said: ${yourMessage}`},
-                {"role": "user", "content": `They said: ${theirMessage}`},
-                {"role": "user", "content": `Relationship: ${relationship}`},
-            ],
+        const result = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
         });
     
         // Parsing the response
-        const response = chatCompletion.choices[0].message.content || "NA;NA;NA;NA";
+        const response = result.text || "NA;NA;NA;NA";
         console.log(response);
         const stringArray = response.split(";");
 
