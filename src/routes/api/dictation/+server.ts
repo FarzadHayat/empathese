@@ -15,18 +15,29 @@ export const POST: RequestHandler = async ({ url, request }) => {
     const ai = getAI();
     const blob = await request.blob();
 
-    if (blob instanceof Blob) {
+    if (blob.size === 0) {
+        return new Response('Invalid audio data', {
+            status: 400,
+            headers: { 'Content-Type': 'text/plain' },
+        });
+    }
+
+    try {
         const arrayBuffer = await blob.arrayBuffer();
         const base64Audio = Buffer.from(arrayBuffer).toString('base64');
 
+        // Normalise the MIME type: strip codec parameters and fall back to
+        // 'audio/ogg' so the Gemini API always receives a supported value.
+        const mimeType = (blob.type || 'audio/ogg').split(';')[0].trim() || 'audio/ogg';
+
         const result = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3-flash-preview',
             contents: [
                 {
                     parts: [
                         {
                             inlineData: {
-                                mimeType: blob.type || 'audio/ogg',
+                                mimeType,
                                 data: base64Audio,
                             },
                         },
@@ -37,13 +48,11 @@ export const POST: RequestHandler = async ({ url, request }) => {
         });
 
         return new Response(result.text ?? '');
+    } catch (err) {
+        console.error('Dictation error:', err);
+        return new Response('Transcription failed', {
+            status: 500,
+            headers: { 'Content-Type': 'text/plain' },
+        });
     }
-
-    // Create a custom error response
-    const errorResponse = new Response('Invalid audio data', {
-        status: 400,
-        headers: { 'Content-Type': 'text/plain' },
-    });
-
-    return errorResponse;
 }
