@@ -5,23 +5,56 @@
     import DialogueInput from "$lib/DialogueInput.svelte";
     import SuggestedResponse from "$lib/SuggestedResponse.svelte";
 
-    let suggested = "This is a really really really long string that sits within the suggested response and can be displayed several times to provide some kind of insightful advice to those who require it."
-
     let playing = "";
-    const speak = async (text: string) => {
-        if (playing !== text) {
-            playing = text;
-            const utterThis = new SpeechSynthesisUtterance(text);
-            utterThis.voice = speechSynthesis.getVoices()[2];
-            speechSynthesis.cancel();
-            speechSynthesis.speak(utterThis);
+    let currentAudio: HTMLAudioElement | null = null;
 
-            utterThis.addEventListener("end", () => {
-                playing = "";
-            });
-        } else {
-            speechSynthesis.cancel();
+    const speak = async (text: string) => {
+        if (playing === text) {
+            currentAudio?.pause();
+            currentAudio = null;
             playing = "";
+            return;
+        }
+
+        currentAudio?.pause();
+        currentAudio = null;
+        playing = text;
+
+        try {
+            const response = await fetch('/api/tts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text }),
+            });
+
+            if (!response.ok) {
+                console.error('TTS request failed:', response.status, response.statusText);
+                playing = "";
+                return;
+            }
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const audio = new Audio(url);
+            currentAudio = audio;
+
+            audio.addEventListener('ended', () => {
+                URL.revokeObjectURL(url);
+                playing = "";
+                currentAudio = null;
+            });
+
+            audio.addEventListener('error', () => {
+                URL.revokeObjectURL(url);
+                playing = "";
+                currentAudio = null;
+            });
+
+            await audio.play();
+        } catch (err) {
+            console.error('TTS error:', err);
+            playing = "";
+            currentAudio = null;
         }
     };
 </script>
