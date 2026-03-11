@@ -1,16 +1,18 @@
-import { error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 dotenv.config();
 
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) {
-    throw new Error('GEMINI_API_KEY environment variable is not set');
+function getAI() {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        throw new Error('GEMINI_API_KEY environment variable is not set');
+    }
+    return new GoogleGenAI({ apiKey });
 }
-const ai = new GoogleGenAI({ apiKey });
 
 export const POST: RequestHandler = async ({ url, request }) => {
+    const ai = getAI();
     const blob = await request.blob();
 
     if (blob instanceof Blob) {

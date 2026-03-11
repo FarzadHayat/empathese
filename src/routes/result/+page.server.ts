@@ -4,20 +4,23 @@ import dotenv from 'dotenv';
 import { redirect } from '@sveltejs/kit';
 dotenv.config();
 
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) {
-    throw new Error('GEMINI_API_KEY environment variable is not set');
+function getAI() {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        throw new Error('GEMINI_API_KEY environment variable is not set');
+    }
+    return new GoogleGenAI({ apiKey });
 }
-const ai = new GoogleGenAI({ apiKey });
 
 export const load: PageServerLoad = ({request}) => {
     if (request.method != "POST") {
-        throw redirect(302, "/");
+        redirect(302, "/");
     }
 }
 
 export const actions = {
     default: async ({ cookies, request }) => {
+        const ai = getAI();
         // Getting the user's input
         const data = await request.formData();
         const yourMessage = data.get("yourMessage")?.toString();
