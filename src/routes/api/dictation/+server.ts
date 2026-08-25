@@ -31,7 +31,7 @@ export const POST: RequestHandler = async ({ url, request }) => {
         const mimeType = (blob.type || 'audio/ogg').split(';')[0].trim() || 'audio/ogg';
 
         const result = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
+            model: 'gemini-3.7-flash',
             contents: [
                 {
                     parts: [
