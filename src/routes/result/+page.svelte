@@ -6,55 +6,27 @@
     import SuggestedResponse from "$lib/SuggestedResponse.svelte";
 
     let playing = "";
-    let currentAudio: HTMLAudioElement | null = null;
+    let synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
 
     const speak = async (text: string) => {
         if (playing === text) {
-            currentAudio?.pause();
-            currentAudio = null;
+            synth?.cancel();
             playing = "";
             return;
         }
 
-        currentAudio?.pause();
-        currentAudio = null;
+        synth?.cancel();
         playing = text;
 
-        try {
-            const response = await fetch('/api/tts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text }),
-            });
-
-            if (!response.ok) {
-                console.error('TTS request failed:', response.status, response.statusText);
+        if (synth) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.onend = () => {
                 playing = "";
-                return;
-            }
-
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            const audio = new Audio(url);
-            currentAudio = audio;
-
-            audio.addEventListener('ended', () => {
-                URL.revokeObjectURL(url);
+            };
+            utterance.onerror = () => {
                 playing = "";
-                currentAudio = null;
-            });
-
-            audio.addEventListener('error', () => {
-                URL.revokeObjectURL(url);
-                playing = "";
-                currentAudio = null;
-            });
-
-            await audio.play();
-        } catch (err) {
-            console.error('TTS error:', err);
-            playing = "";
-            currentAudio = null;
+            };
+            synth.speak(utterance);
         }
     };
 </script>
