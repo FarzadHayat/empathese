@@ -50,7 +50,7 @@ export const actions = {
         // Groq API call
         const chatCompletion = await ai.chat.completions.create({
             messages: [{ role: 'user', content: prompt }],
-            model: 'llama-3.1-8b-instant',
+            model: 'openai/gpt-oss-20b',
             temperature: 0.5,
         });
     

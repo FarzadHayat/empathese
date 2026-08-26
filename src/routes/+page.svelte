@@ -122,13 +122,13 @@
     <div class="join join-horizontal">
         <input name="yourMessage" type="text" class={`input input-bordered w-full mb-3 join-item`} placeholder="What did you say?" bind:value={youSaid} readonly={loading} maxlength=250 />
         {#if youSaid != ""}
-            <button class="btn join-item" on:click|preventDefault={() => youSaid = ""}>
+            <button class="btn join-item" aria-label="Clear you said" on:click|preventDefault={() => youSaid = ""}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>              
             </button>
         {/if}
-        <button class={`btn join-item ${recordingYou ? 'btn-primary' : 'btn-neutral'}`} on:click|preventDefault={recordYou} disabled={loadingYou || recordingThem || loading}>
+        <button class={`btn join-item ${recordingYou ? 'btn-primary' : 'btn-neutral'}`} aria-label="Record you said" on:click|preventDefault={recordYou} disabled={loadingYou || recordingThem || loading}>
             {#if !recordingYou && !loadingYou}
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
@@ -146,13 +146,13 @@
     <div class="join join-horizontal">
         <input name="theirMessage" type="text" class={`input input-bordered w-full mb-3 join-item`} placeholder="What did they say?" bind:value={theySaid} readonly={loading} required maxlength=250 />
         {#if theySaid != ""}
-            <button class="btn join-item" on:click|preventDefault={() => theySaid = ""}>
+            <button class="btn join-item" aria-label="Clear they said" on:click|preventDefault={() => theySaid = ""}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>              
             </button>
         {/if}
-        <button class={`btn join-item ${recordingThem ? 'btn-primary' : 'btn-neutral'}`} on:click|preventDefault={recordThem} disabled={loadingThem || recordingYou || loading}>
+        <button class={`btn join-item ${recordingThem ? 'btn-primary' : 'btn-neutral'}`} aria-label="Record they said" on:click|preventDefault={recordThem} disabled={loadingThem || recordingYou || loading}>
             {#if !recordingThem && !loadingThem}
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
